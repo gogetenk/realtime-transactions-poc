@@ -10,11 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Elastic.Clients.Elasticsearch" Version="8.2.0-preview.1.24428.5" />
     <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.Elasticsearch" Version="8.2.0-preview.1.24428.5" />
     <PackageReference Include="Aspire.Hosting.Kafka" Version="8.2.0" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.2.0" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.Seq" Version="8.2.0" />
   </ItemGroup>
 
   <ItemGroup>
