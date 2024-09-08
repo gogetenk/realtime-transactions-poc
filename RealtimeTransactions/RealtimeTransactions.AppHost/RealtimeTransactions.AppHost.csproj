@@ -23,4 +23,10 @@
     <ProjectReference Include="..\TransactionService\TransactionService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="data\init.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -1,16 +1,23 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var kafka = builder.AddKafka("kafka")
+var kafka = builder.AddKafka("transactions-kafka")
     .WithKafkaUI();
 
+var postgresql = builder.AddPostgres("postgres")
+    .WithPgWeb()
+    .WithEnvironment("POSTGRES_DB", "transactions-db")
+    .WithBindMount(
+        "data",
+        "/docker-entrypoint-initdb.d");
+var postgresdb = postgresql.AddDatabase("transactions-db");
+
 var rmq = builder.AddRabbitMQ("rabbitmq");
-var postgresql = builder.AddPostgres("postgres");
 var elastic = builder.AddElasticsearch("elastic");
 var seq = builder.AddSeq("seq");
 
 builder.AddProject<Projects.TransactionService>("transactions-api")
     .WithReference(kafka)
-    .WithReference(postgresql)
+    .WithReference(postgresdb)
     .WithReference(elastic)
     .WithReference(seq);
 
