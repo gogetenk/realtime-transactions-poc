@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Elastic.Clients.Elasticsearch;
+using NotificationService.Consumers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
@@ -7,18 +8,20 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.AddKafkaConsumer<string, Transaction>("transactions-kafka", builder =>
+builder.AddKafkaConsumer<string, string>("transactions-kafka", builder =>
 {
-    builder.SetValueDeserializer(new JsonDeserializer<Transaction>());
+    builder.Config.GroupId = "my-consumer-group";
+    builder.Config.AutoOffsetReset = AutoOffsetReset.Earliest;
+    builder.Config.EnableAutoCommit = false;
+    builder.Config.ApiVersionRequest = false;
 });
 builder.AddElasticsearchClient("elastic");
 builder.AddRabbitMQClient("rabbitmq");
+
+builder.Services.AddHostedService<KafkaNotificationConsumer>(); // Add Background Service
 
 var app = builder.Build();
 
@@ -33,30 +36,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Consume Kafka transactions and process notifications
-app.MapPost("/api/notifications", async (IConsumer<string, Transaction> kafka, IModel rabbitMqChannel, ElasticsearchClient elastic) =>
-{
-    // Kafka Consumer Configuration
-    var consumeResult = kafka.Consume();
-    var transaction = consumeResult.Message.Value;
-
-    // Process transaction (example: notification logic)
-    var notificationMessage = $"Transaction {transaction.TransactionId} for {transaction.Amount} {transaction.Currency} completed successfully.";
-
-    // Send notification to RabbitMQ
-    var body = System.Text.Encoding.UTF8.GetBytes(notificationMessage);
-    rabbitMqChannel.BasicPublish(exchange: "", routingKey: "notification_queue", basicProperties: null, body: body);
-
-    // Optionally index the notification in Elasticsearch
-    await elastic.IndexAsync(new
-    {
-        TransactionId = transaction.TransactionId,
-        Message = notificationMessage,
-        Timestamp = DateTime.UtcNow
-    });
-
-    return Results.Ok(notificationMessage);
-});
 
 // Retrieve sent notifications from RabbitMQ
 app.MapGet("/api/notifications", () =>
