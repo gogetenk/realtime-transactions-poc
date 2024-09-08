@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>c72be6d2-4984-4add-9724-796594301db3</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Elastic.Clients.Elasticsearch" Version="8.2.0-preview.1.24428.5" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.Kafka" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.2.0" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NotificationService\NotificationService.csproj" />
+    <ProjectReference Include="..\TransactionService\TransactionService.csproj" />
+  </ItemGroup>
+
+</Project>
