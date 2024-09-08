@@ -10,9 +10,9 @@ builder.AddServiceDefaults();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.AddKafkaProducer<string, string>("transactions-kafka", builder =>
+builder.AddKafkaProducer<string, Transaction>("transactions-kafka", builder =>
 {
-    builder.Config.ApiVersionRequest = false;
+    builder.SetValueSerializer(new JsonSerializer<Transaction>());
 });
 builder.AddElasticsearchClient("elastic", null, settings =>
 {
@@ -34,7 +34,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/api/transactions", async (Transaction transaction, NpgsqlDataSource dataSource, IProducer<string, string> kafka, ElasticsearchClient elastic) =>
+app.MapPost("/api/transactions", async (Transaction transaction, NpgsqlDataSource dataSource, IProducer<string, Transaction> kafka, ElasticsearchClient elastic) =>
 {
     // Open a connection and insert into PostgreSQL
     await using var connection = await dataSource.OpenConnectionAsync();
@@ -47,7 +47,7 @@ app.MapPost("/api/transactions", async (Transaction transaction, NpgsqlDataSourc
     await cmd.ExecuteNonQueryAsync();
 
     // Send to Kafka
-    await kafka.ProduceAsync("transaction-topic", new Message<string, string>() { Value = JsonSerializer.Serialize(transaction) });
+    await kafka.ProduceAsync("transaction-topic", new Message<string, Transaction>() { Value = transaction });
 
     // Index in Elasticsearch
     await elastic.IndexAsync(transaction);
